@@ -11,7 +11,9 @@ using std::stringstream;
 void Parser::Start()
 {
     // enquanto não atingir o fim da entrada
-    while ((lookahead = scanner.yylex()) != 0)
+    lookahead = scanner.yylex();
+     cout << scanner.YYText() << "\n";
+    /* while ((lookahead = scanner.yylex()) != 0)
     {
         // trata o token recebido do analisador léxico
         switch(lookahead)
@@ -23,5 +25,5 @@ void Parser::Start()
             case NUMBER: cout << "NUMBER: " << scanner.YYText() << "\n"; break;
             case RELOP: cout << "RELOP: " << scanner.YYText() << "\n";; break;
         }
-    }
+    } */
 }
