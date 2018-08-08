@@ -47,6 +47,10 @@ A hierarquia do documento deve ser apresentada como no exemplo abaixo:
 |   |   +--<br>
 |   +--</body>
 +--</html>
+
+Tags HTML: 45
+Linhas: 84
+Caracteres : 1531
 ```
 
 Uso
