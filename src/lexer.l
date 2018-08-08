@@ -105,7 +105,6 @@ ws		                ({SPACE}|{RE}|{RS}|{SEPCHAR})*
 																						if (tag.compare("html") == 0) {
 																							if (!initHTml) {
 																									initHTml = true;
-																									//BEGIN INITIAL;
 																									tags.push(tag);
 																								} else {
 																									cout << "Erro! Tag html ja aberta! Linha: " << lineno();
