@@ -76,9 +76,12 @@ Execute as tarefas nessa ordem:
 1. cmake
 2. make
 
-Esta ultima deve gerar o arquivo **Htmlex** na pasta [Build](https://github.com/aretw0/lex-work/tree/master/Build) e logo você poderá executar-lo           
+Esta ultima deve gerar o arquivo **Htmlex** na pasta [Build](https://github.com/aretw0/lex-work/tree/master/Build) e logo você poderá executar-lo com           
         
     ./Build/Htmlex < ./data/lex.html
+ou
+    
+    ./Build/Htmlex ./data/lex.html
 
 >Isso mesmo, só funciona em sistemas operacionais linux.
 
