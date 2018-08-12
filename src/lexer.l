@@ -14,7 +14,7 @@ stack<string> tags;
 bool initHTml = false;
 
 // estatísticas
-unsigned charCount = 0, tagCount = 0, lineCount = 0;
+unsigned charCount = 0, tagCount = 0, lineCount = 1;
 
 // tokens
 enum Tags {
@@ -41,7 +41,7 @@ Tags resolveTag(string input);
 Digit		            [0-9]
 LCLetter	            [a-z]
 UCLetter	            [A-Z]
-Special		            ['()_,\-\./:=?;\"&]
+Special		            ['()_,\*\+\-\./\\:=?;\"&]
 
 
 /* Caractere: Sintaxe concreta */
@@ -79,89 +79,102 @@ number		            {Digit}+
 /* Espaços em branco */
 ws		                ({SPACE}|{RE}|{RS}|{SEPCHAR})*
 
+/* tags  */
+doctype 				{MDO}{name}{ws}{name}{MDC}
+comment					{MDO}{COM}([^-]|-[^-])*{COM}{MDC}
+tagdefopen				{name}({ws}{name}{EQUALS}(({LIT}(.)*{LIT})|({LITA}(.)*{LITA})))*
+tagdefclose				{TLIT}{name}
+
+tagondef				({tagdefopen}|{tagdefclose}){TAGC}
+
+tagopening				{TAGO}{tagdefopen}{TAGC}
+tagclosing				{TAGO}{tagdefclose}{TAGC}
+
+/* conteúdo de texto */
+textcontent 			{SPACE}*({name}|{number}|{Special})({name}|{number}|{Special}|{SPACE})*
 /* Estados */
 %s CONTENT
 
 
 %%
-{MDO}{name}{ws}{name}{MDC}            												;// <!DOCTYPE html>
-{MDO}{COM}([^-]|-[^-])*{COM}{MDC}     												;// <!-- COMENTÁRIOS -->
-{TAGO}{name}({ws}{name}{EQUALS}(({LIT}(.)*{LIT})|({LITA}(.)*{LITA})))*{TAGC}		{	// Abertura de tags
-																						for (int i = 0; i < tags.size();++i) {
-																							cout << "|\t";
-																						}
-																						cout << "+--" << YYText() << endl;
-																						++tagCount;
-																						string tag(YYText());
-																						size_t found = tag.find_first_of(' ');
+{doctype}					;// <!DOCTYPE html>
+{comment}					;// <!-- COMENTÁRIOS -->
+{tagopening}				{	// Abertura de tags
+								for (int i = 0; i < tags.size();++i) {
+									cout << "|\t";
+								}
+								cout << "+--" << YYText() << endl;
+								++tagCount;
+								string tag(YYText());
+								size_t found = tag.find_first_of(' ');
 
-																						if (found != string::npos) {
-																							tag = tag.substr(1,(found-1));
-																						} else {
-																							tag = tag.substr(1,tag.length()-2);
-																						}
-																						// teoricamente aqui eu vou ter so a tag para trabalhar
+								if (found != string::npos) {
+									tag = tag.substr(1,(found-1));
+								} else {
+									tag = tag.substr(1,tag.length()-2);
+								}
+								// teoricamente aqui eu vou ter so a tag para trabalhar
 
-																						if (tag.compare("html") == 0) {
-																							if (!initHTml) {
-																									initHTml = true;
-																									tags.push(tag);
-																								} else {
-																									cout << "Erro! Tag html ja aberta! Linha: " << lineno();
-																									exit(EXIT_FAILURE);
-																									// sair
-																								}
-																						} else {
-																							if (!initHTml) {
-																									cout << "Erro! Tag html não foi aberta! Linha: " << lineno();
-																									exit(EXIT_FAILURE);
-																									// sair
-																							} else {
-																								switch (resolveTag(tag)) {
-																									case STYLE:
-																										tags.push(tag);
-																										BEGIN INITIAL;
-																										break;
-																									default:
-																										BEGIN CONTENT;
-																										tags.push(tag);
-																										break;
-																									case IMG:
-																									case BR:
-																										break;
-																									case INVALID:
-																										cout << "Erro! Tag "<< tag <<" desconhecida! Linha: " << lineCount;
-																										// sair do programa
-																										exit(EXIT_FAILURE);
-																										break;	
-																								}
-																							}
-																						}
-																					}
-<CONTENT>{SPACE}*({name}|{number}|{Special})({name}|{number}|{Special}|{SPACE})*	{	// conteúdo de texto
-																						for (int i = 0; i < tags.size();++i) {
-																							cout << "|\t";
-																						}
-																						charCount+=yyleng;
-																						cout << "+--" << "Texto[" << yyleng << ']' << endl;
-																					}
-{TAGO}{TLIT}{name}{TAGC}                                        					{	// fechamento de tags
-																						string tag(YYText());
-																						tag = tag.substr(2,tag.length()-3);
-																						if (tag.compare(tags.top()) == 0) {
-																							tags.pop();
-																							for (int i = 0; i < tags.size();++i) {
-																								cout << "|\t";
-																							}
-																							cout << "+--" << YYText() << endl;
-																						} else {
-																							cout << "Erro! Feche a tag "<< tags.top() <<" primeiro! " << tag <<" na linha: " << lineCount;
-																							// sair do programa
-																							exit(EXIT_FAILURE);
-																						}
-																					}
-{RE}                                                         						{++lineCount;}                                                            ;
-.                                                               					;
+								if (tag.compare("html") == 0) {
+									if (!initHTml) {
+											initHTml = true;
+											tags.push(tag);
+										} else {
+											cout << "Erro! Tag html ja aberta! Linha: " << lineCount;
+											exit(EXIT_FAILURE);
+											// sair
+										}
+								} else {
+									if (!initHTml) {
+											cout << "Erro! Tag html não foi aberta! Linha: " << lineCount;
+											exit(EXIT_FAILURE);
+											// sair
+									} else {
+										switch (resolveTag(tag)) {
+											case STYLE:
+												tags.push(tag);
+												BEGIN INITIAL;
+												break;
+											default:
+												BEGIN CONTENT;
+												tags.push(tag);
+												break;
+											case IMG:
+											case BR:
+												break;
+											case INVALID:
+												cout << "Erro! Tag "<< tag <<" desconhecida! Linha: " << lineCount;
+												// sair do programa
+												exit(EXIT_FAILURE);
+												break;	
+										}
+									}
+								}
+							}
+<CONTENT>{textcontent}		{	// conteúdo de texto
+								for (int i = 0; i < tags.size();++i) {
+									cout << "|\t";
+								}
+								charCount+=yyleng;
+								cout << "+--" << "Texto[" << yyleng << ']' << endl;
+							}
+{tagclosing}   				{	// fechamento de tags
+								string tag(YYText());
+								tag = tag.substr(2,tag.length()-3);
+								if (tag.compare(tags.top()) == 0) {
+									tags.pop();
+									for (int i = 0; i < tags.size();++i) {
+										cout << "|\t";
+									}
+									cout << "+--" << YYText() << endl;
+								} else {
+									cout << "Erro! Feche a tag "<< tags.top() <<" primeiro! " << tag <<" na linha: " << lineCount;
+									// sair do programa
+									exit(EXIT_FAILURE);
+								}
+							}
+{RE}						{++lineCount;}                                                            ;
+.          					;
 %%
 
 int main(int argc, char ** argv)
@@ -190,7 +203,7 @@ int main(int argc, char ** argv)
 	// imprimindo estatísticas
     cout << endl;
 	cout << "Tags HTML: " << tagCount << "\n" 
-         << "Linhas: " << lineCount+1 << "\n" 
+         << "Linhas: " << lineCount << "\n" 
          << "Caracteres: " << charCount << "\n";
 	return 0;
 }

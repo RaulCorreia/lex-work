@@ -5,7 +5,6 @@ project(Htmlex)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 11)
 set(SRC_DIR src)
-#set(SOURCES ${SRC_DIR}/parser.cpp ${SRC_DIR}/htmlex.cpp)
 
 # Configuração do Flex
 find_package(FLEX)
@@ -16,4 +15,3 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # Executável depende também da saída do Flex
 add_executable(${PROJECT_NAME} ${FLEX_Lexer_OUTPUTS})
-#${SOURCES}
